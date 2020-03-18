@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jogo Javascript</title>
+        <style>
+            canvas {
+                position: absolute;
+                top: 0px;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+                margin: auto;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            var canvas, context, alt, larg, frames = 0
+
+            function create() { //cria o layout
+            context.fillStyle = "#50beff"
+                context.fillRect(0, 0, larg, alt)
+            }
+
+            function click(e) { //identificar se a pessoa clicou
+                alert("YES")
+            }
+
+            function start() { //pra rodar o jogo
+                update()
+                create()
+
+                window.requestAnimationFrame(start)
+            }
+
+            function update() { //atualizar status do personagem e dos blocos
+                frames++
+            }
+
+            function main() {  //funçao principal
+                alt = window.innerHeight //pega a altura da janela do usuário
+                larg = window.innerWidth
+
+                if (larg >= 500) {
+                    larg = 600
+                    alt = 600
+                }
+
+                canvas = document.createElement("canvas")
+                canvas.width = larg
+                canvas.height = alt
+                canvas.style.border = "1px solid #000"
+
+                context = canvas.getContext("2d")
+                document.body.appendChild(canvas)
+
+                document.addEventListener("mousedown", click) //sempre que tiver um clique chama a função click
+
+                start()
+            }
+
+            main() //inicializa o jogo
+        </script>
+    </body>
+</html>
