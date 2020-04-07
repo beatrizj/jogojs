@@ -1,4 +1,4 @@
-var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual,
+var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual, record,
 
     estados = {
         jogar: 0,
@@ -50,6 +50,12 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         reset: function() {
             this.velocity = 0
             this.y = 0
+            
+            if (this.score > record) {
+                localStorage.setItem("record", this.score)
+                record = this.score
+            }
+
             this.score = 0
 
         }
@@ -108,7 +114,7 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
     }
 
 function create() { //cria o layout
-    context.fillStyle = "#50beff"
+    context.fillStyle = "#80daff"
     context.fillRect(0, 0, larg, alt)
 
     context.fillStyle = "#ffffff"
@@ -125,6 +131,16 @@ function create() { //cria o layout
         context.save()
         context.translate(larg / 2, alt / 2)
         context.fillStyle = "#ffffff"
+
+        if (bloco.score > record) {
+            context.fillText("Novo recorde!", -150, -95)
+        } else if (record < 10) {
+            context.fillText(`Recorde: ${record}`, -120, -95)
+        } else if (record >= 10 && record < 100) {
+            context.fillText(`Recorde: ${record}`, -141, -95)
+        } else {
+            context.fillText(`Recorde: ${record}`, -162, -95)
+        }
 
         if (bloco.score < 10) {
             context.fillText(bloco.score, -13, 19)
@@ -191,6 +207,12 @@ function main() {  //funçao principal
     document.addEventListener("mousedown", click) //sempre que tiver um clique chama a função click
 
     estadoAtual = estados.jogar
+    record = localStorage.getItem("record")
+
+    if (record == null) {
+        record = 0
+    }
+
     start()
 }
 
