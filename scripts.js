@@ -26,6 +26,7 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         velocity: 0,
         forcaDoPulo: 23.9,
         qntPulos: 0,
+        score: 0,
         atualiza: function () {
             this.velocity += this.gravity
             this.y += this.velocity
@@ -45,6 +46,12 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         desenha: function () {
             context.fillStyle = this.cor
             context.fillRect(this.x, this.y, this.largura, this.altura)
+        },
+        reset: function() {
+            this.velocity = 0
+            this.y = 0
+            this.score = 0
+
         }
     },
 
@@ -55,7 +62,8 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         insere: function () {
             this._obs.push({
                 x: larg,
-                largura: 30 + Math.floor(21 * Math.random()),
+                //largura: 30 + Math.floor(21 * Math.random()),
+                largura: 50,
                 altura: 30 + Math.floor(120 * Math.random()),
                 cor: this.cores[Math.floor(5 * Math.random())]
             })
@@ -74,6 +82,8 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
 
                 if (bloco.x < obs.x + obs.largura && bloco.x + bloco.largura >= obs.x && bloco.y + bloco.altura >= chao.y - obs.altura) {
                     estadoAtual = estados.perdeu
+                } else if (obs.x == 0) {
+                    bloco.score++
                 }
 
                 if (obs.x <= -obs.largura) {
@@ -101,12 +111,30 @@ function create() { //cria o layout
     context.fillStyle = "#50beff"
     context.fillRect(0, 0, larg, alt)
 
+    context.fillStyle = "#ffffff"
+    context.font = "50px Arial"
+    context.fillText(bloco.score, 5, 42)
+
     if (estadoAtual == estados.jogar) {
         context.fillStyle = "green"
         context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100) //elimina metade para o centro do quadrado ficar alinhado com o centro do canvas
     } else if (estadoAtual == estados.perdeu) {
         context.fillStyle = "red"
         context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100)
+
+        context.save()
+        context.translate(larg / 2, alt / 2)
+        context.fillStyle = "#ffffff"
+
+        if (bloco.score < 10) {
+            context.fillText(bloco.score, -13, 19)
+        } else if (bloco.score >= 10 && bloco.score < 100) {
+            context.fillText(bloco.score, -26, 19)
+        } else {
+            context.fillText(bloco.score, -39, 19)            
+        }
+        
+        context.restore()
     } else if (estadoAtual == estados.jogando) {
         obstaculos.desenha()
     }
@@ -122,8 +150,8 @@ function click(e) { //identificar se a pessoa clicou
         estadoAtual = estados.jogando
     } else if (estadoAtual == estados.perdeu && bloco.y >= 2 * alt) {
         estadoAtual = estados.jogar
-        bloco.velocity = 0
-        bloco.y = 0
+        obstaculos.limpa()
+        bloco.reset()
     }    
 }
 
@@ -140,8 +168,6 @@ function update() { //atualizar status do personagem e dos blocos
 
     if (estadoAtual == estados.jogando) {        
         obstaculos.atualiza()
-    } else if (estadoAtual == estados.perdeu) {
-        obstaculos.limpa()
     }
 }
 
