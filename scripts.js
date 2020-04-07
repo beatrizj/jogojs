@@ -1,4 +1,10 @@
-var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6,
+var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual,
+
+    estados = {
+        jogar: 0,
+        jogando: 1,
+        perdeu: 2
+    },
 
     chao = {
         y: 550,
@@ -24,9 +30,10 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6,
             this.velocity += this.gravity
             this.y += this.velocity
 
-            if (this.y > chao.y - this.altura) {
+            if (this.y > chao.y - this.altura && estadoAtual != estados.perdeu) {
                 this.y = chao.y - this.altura
                 this.qntPulos = 0
+                this.velocity = 0
             }
         },
         pula: function () {
@@ -65,6 +72,10 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6,
                 var obs = this._obs[i]
                 obs.x -= velocidade
 
+                if (bloco.x < obs.x + obs.largura && bloco.x + bloco.largura >= obs.x && bloco.y + bloco.altura >= chao.y - obs.altura) {
+                    estadoAtual = estados.perdeu
+                }
+
                 if (obs.x <= -obs.largura) {
                     this._obs.splice(i, 1)
                     tam--
@@ -72,6 +83,11 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6,
                 }
             }
         },
+
+        limpa: function() {
+            this._obs = []
+        },
+
         desenha: function () {
             for (var i = 0, tam = this._obs.length; i < tam; i++) {
                 var obs = this._obs[i]
@@ -85,13 +101,30 @@ function create() { //cria o layout
     context.fillStyle = "#50beff"
     context.fillRect(0, 0, larg, alt)
 
-    chao.desenha()
-    obstaculos.desenha()
+    if (estadoAtual == estados.jogar) {
+        context.fillStyle = "green"
+        context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100) //elimina metade para o centro do quadrado ficar alinhado com o centro do canvas
+    } else if (estadoAtual == estados.perdeu) {
+        context.fillStyle = "red"
+        context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100)
+    } else if (estadoAtual == estados.jogando) {
+        obstaculos.desenha()
+    }
+    
+    chao.desenha()    
     bloco.desenha()
 }
 
 function click(e) { //identificar se a pessoa clicou
-    bloco.pula()
+    if (estadoAtual == estados.jogando) {
+        bloco.pula()
+    } else if (estadoAtual == estados.jogar) {
+        estadoAtual = estados.jogando
+    } else if (estadoAtual == estados.perdeu && bloco.y >= 2 * alt) {
+        estadoAtual = estados.jogar
+        bloco.velocity = 0
+        bloco.y = 0
+    }    
 }
 
 function start() { //pra rodar o jogo
@@ -104,7 +137,12 @@ function start() { //pra rodar o jogo
 function update() { //atualizar status do personagem e dos blocos
     frames++
     bloco.atualiza()
-    obstaculos.atualiza()
+
+    if (estadoAtual == estados.jogando) {        
+        obstaculos.atualiza()
+    } else if (estadoAtual == estados.perdeu) {
+        obstaculos.limpa()
+    }
 }
 
 function main() {  //funçao principal
@@ -126,6 +164,7 @@ function main() {  //funçao principal
 
     document.addEventListener("mousedown", click) //sempre que tiver um clique chama a função click
 
+    estadoAtual = estados.jogar
     start()
 }
 
