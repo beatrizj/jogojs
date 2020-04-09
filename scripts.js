@@ -1,4 +1,4 @@
-var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual, record,
+var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual, record, img,
 
     estados = {
         jogar: 0,
@@ -19,8 +19,8 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
     bloco = {
         x: 50,
         y: 0,
-        altura: 50,
-        largura: 50,
+        altura: spriteCharacter.altura,
+        largura: spriteCharacter.altura,
         cor: "#ff9239",
         gravity: 1.6,
         velocity: 0,
@@ -44,8 +44,9 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
             }
         },
         desenha: function () {
-            context.fillStyle = this.cor
-            context.fillRect(this.x, this.y, this.largura, this.altura)
+            //context.fillStyle = this.cor
+            //context.fillRect(this.x, this.y, this.largura, this.altura)
+            spriteCharacter.desenha(this.x, this.y)
         },
         reset: function() {
             this.velocity = 0
@@ -114,8 +115,9 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
     }
 
 function create() { //cria o layout
-    context.fillStyle = "#80daff"
-    context.fillRect(0, 0, larg, alt)
+    // context.fillStyle = "#80daff"
+    // context.fillRect(0, 0, larg, alt)
+    bg.desenha(0, 0)
 
     context.fillStyle = "#ffffff"
     context.font = "50px Arial"
@@ -212,6 +214,9 @@ function main() {  //funçao principal
     if (record == null) {
         record = 0
     }
+
+    img = new Image()
+    img.src = "sheet.png"
 
     start()
 }
