@@ -1,4 +1,4 @@
-var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estadoAtual, record, img,
+var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, record, img,
 
     estados = {
         jogar: 0,
@@ -8,11 +8,17 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
 
     chao = {
         y: 550,
+        x: 0,
         altura: 50,
-        cor: "#ffdf70",
+        atualiza: function() {
+            this.x -= velocidade
+            if (this.x <= -30) {
+                this.x = 0
+            }
+        },
         desenha: function () {
-            context.fillStyle = this.cor,
-                context.fillRect(0, this.y, larg, this.altura)
+            spriteChao.desenha(this.x, this.y)
+            spriteChao.desenha(this.x + spriteChao.largura, this.y)
         }
     },
 
@@ -21,15 +27,16 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         y: 0,
         altura: spriteCharacter.altura,
         largura: spriteCharacter.altura,
-        cor: "#ff9239",
         gravity: 1.6,
         velocity: 0,
         forcaDoPulo: 23.9,
         qntPulos: 0,
         score: 0,
+        rotacao: 0,
         atualiza: function () {
             this.velocity += this.gravity
             this.y += this.velocity
+            this.rotacao += Math.PI / 180 * velocidade
 
             if (this.y > chao.y - this.altura && estadoAtual != estados.perdeu) {
                 this.y = chao.y - this.altura
@@ -46,7 +53,11 @@ var canvas, context, alt, larg, frames = 0, maxPulos = 3, velocidade = 6, estado
         desenha: function () {
             //context.fillStyle = this.cor
             //context.fillRect(this.x, this.y, this.largura, this.altura)
-            spriteCharacter.desenha(this.x, this.y)
+            context.save()
+            context.translate(this.x + this.largura / 2, this.y + this.largura / 2)
+            context.rotate(this.rotacao)
+            spriteCharacter.desenha(-this.largura / 2, -this.altura / 2)
+            context.restore()
         },
         reset: function() {
             this.velocity = 0
@@ -123,42 +134,30 @@ function create() { //cria o layout
     context.font = "50px Arial"
     context.fillText(bloco.score, 5, 42)
 
-    if (estadoAtual == estados.jogar) {
-        context.fillStyle = "green"
-        context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100) //elimina metade para o centro do quadrado ficar alinhado com o centro do canvas
-    } else if (estadoAtual == estados.perdeu) {
-        context.fillStyle = "red"
-        context.fillRect(larg / 2 - 50, alt / 2 - 50, 100, 100)
-
-        context.save()
-        context.translate(larg / 2, alt / 2)
-        context.fillStyle = "#ffffff"
-
-        if (bloco.score > record) {
-            context.fillText("Novo recorde!", -150, -95)
-        } else if (record < 10) {
-            context.fillText(`Recorde: ${record}`, -120, -95)
-        } else if (record >= 10 && record < 100) {
-            context.fillText(`Recorde: ${record}`, -141, -95)
-        } else {
-            context.fillText(`Recorde: ${record}`, -162, -95)
-        }
-
-        if (bloco.score < 10) {
-            context.fillText(bloco.score, -13, 19)
-        } else if (bloco.score >= 10 && bloco.score < 100) {
-            context.fillText(bloco.score, -26, 19)
-        } else {
-            context.fillText(bloco.score, -39, 19)            
-        }
-        
-        context.restore()
-    } else if (estadoAtual == estados.jogando) {
+    if (estadoAtual == estados.jogando) {
         obstaculos.desenha()
     }
-    
+
     chao.desenha()    
     bloco.desenha()
+
+    if (estadoAtual == estados.jogar) {
+        jogar.desenha(larg / 2 - jogar.largura / 2, alt / 2 - jogar.altura / 2)
+    }
+
+    if (estadoAtual == estados.perdeu) {
+        perdeu.desenha(larg / 2 - perdeu.largura / 2, alt / 2 - perdeu.altura / 2 - spriteRecord.altura / 2)
+
+        spriteRecord.desenha(larg / 2 - spriteRecord.largura / 2, alt / 2 + perdeu.altura / 2 - spriteRecord.altura / 2 - 25)
+
+        if (bloco.score > record) {
+            novo.desenha(larg / 2 - 180, alt / 2 + 30)
+            context.fillText(bloco.score, 420, 470)
+        } else {
+            context.fillText(bloco.score, 395, 390)
+            context.fillText(record, 420, 470)
+        }
+    }
 }
 
 function click(e) { //identificar se a pessoa clicou
@@ -181,12 +180,12 @@ function start() { //pra rodar o jogo
 }
 
 function update() { //atualizar status do personagem e dos blocos
-    frames++
-    bloco.atualiza()
-
     if (estadoAtual == estados.jogando) {        
         obstaculos.atualiza()
     }
+
+    chao.atualiza()
+    bloco.atualiza()
 }
 
 function main() {  //funçao principal
