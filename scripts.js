@@ -33,6 +33,8 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
         qntPulos: 0,
         score: 0,
         rotacao: 0,
+        vidas: 3,
+        colidindo: false,
         atualiza: function () {
             this.velocity += this.gravity
             this.y += this.velocity
@@ -68,6 +70,7 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
                 record = this.score
             }
 
+            this.vidas = 3
             this.score = 0
 
         }
@@ -98,8 +101,18 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
                 var obs = this._obs[i]
                 obs.x -= velocidade
 
-                if (bloco.x < obs.x + obs.largura && bloco.x + bloco.largura >= obs.x && bloco.y + bloco.altura >= chao.y - obs.altura) {
-                    estadoAtual = estados.perdeu
+                if (!bloco.colidindo && obs.x <= bloco.x + bloco.largura && bloco.x <= obs.x + obs.largura && chao.y - obs.altura <= bloco.y + bloco.altura) {
+                    bloco.colidindo = true
+
+                    setTimeout(function() {
+                        bloco.colidindo = false
+                    }, 500)
+
+                    if (bloco.vidas >= 1) {
+                        bloco.vidas--
+                    } else {
+                        estadoAtual = estados.perdeu
+                    }
                 } else if (obs.x == 0) {
                     bloco.score++
                 }
@@ -133,6 +146,7 @@ function create() { //cria o layout
     context.fillStyle = "#ffffff"
     context.font = "50px Arial"
     context.fillText(bloco.score, 5, 42)
+    context.fillText(bloco.vidas, 568, 42)
 
     if (estadoAtual == estados.jogando) {
         obstaculos.desenha()
