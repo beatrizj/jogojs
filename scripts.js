@@ -1,4 +1,27 @@
-var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, record, img,
+var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, record, img, pontosParaNovaFase = [5, 10, 15, 20], faseAtual = 0,
+
+    labelNovaFase = {
+        texto: "",
+        opacidade: 0.0,
+        fadeIn: function(dt) {
+            var fadeInId = setInterval(function() {
+                if (labelNovaFase.opacidade < 1.0) {
+                    labelNovaFase.opacidade += 0.01
+                } else {
+                    clearInterval(fadeInId)
+                }
+            }, 10 * dt)
+        },
+        fadeOut: function(dt) {
+            var fadeOutId = setInterval(function() {
+                if (labelNovaFase.opacidade > 0.0) {
+                    labelNovaFase.opacidade -= 0.01
+                } else {
+                    clearInterval(fadeOutId)
+                }
+            }, 10 * dt)
+        }
+    },
 
     estados = {
         jogar: 0,
@@ -13,7 +36,7 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
         atualiza: function() {
             this.x -= velocidade
             if (this.x <= -30) {
-                this.x = 0
+                this.x += 30
             }
         },
         desenha: function () {
@@ -72,12 +95,16 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
 
             this.vidas = 3
             this.score = 0
+            this.gravity = 1.6
 
+            velocidade = 6
+            faseAtual = 0
         }
     },
 
     obstaculos = {
         _obs: [],
+        _scored: false,
         cores: ["#ffbc1c", "#ff1c1c", "#ff85e1", "#52a7ff", "#78ff5d"],
         tempoInsere: 0,
         insere: function () {
@@ -113,8 +140,13 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
                     } else {
                         estadoAtual = estados.perdeu
                     }
-                } else if (obs.x == 0) {
+                } else if (obs.x <= 0 && !obs._scored) {
                     bloco.score++
+                    obs._scored = true
+
+                    if (faseAtual < pontosParaNovaFase.length && bloco.score == pontosParaNovaFase[faseAtual]) {
+                        passarDeFase()
+                    }
                 }
 
                 if (obs.x <= -obs.largura) {
@@ -147,6 +179,9 @@ function create() { //cria o layout
     context.font = "50px Arial"
     context.fillText(bloco.score, 5, 42)
     context.fillText(bloco.vidas, 568, 42)
+
+    context.fillStyle = "rgba(0, 0, 0, " + labelNovaFase.opacidade + ")"
+    context.fillText(labelNovaFase.texto, canvas.width / 2.7, canvas.height / 3)
 
     if (estadoAtual == estados.jogando) {
         obstaculos.desenha()
@@ -200,6 +235,23 @@ function update() { //atualizar status do personagem e dos blocos
 
     chao.atualiza()
     bloco.atualiza()
+}
+
+function passarDeFase() {
+    velocidade++
+    faseAtual++
+    bloco.vidas++
+
+    if (faseAtual == 4) {
+        bloco.gravity *= 0.6
+    }
+
+    labelNovaFase.texto = `Level ${faseAtual}`
+    labelNovaFase.fadeIn(0.4)
+
+    setTimeout(function() {
+        labelNovaFase.fadeOut(0.4)
+    }, 800)    
 }
 
 function main() {  //funçao principal
