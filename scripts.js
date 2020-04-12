@@ -49,7 +49,7 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
         x: 50,
         y: 0,
         altura: spriteCharacter.altura,
-        largura: spriteCharacter.altura,
+        largura: spriteCharacter.largura,
         gravity: 1.6,
         velocity: 0,
         forcaDoPulo: 23.9,
@@ -105,15 +105,16 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
     obstaculos = {
         _obs: [],
         _scored: false,
-        cores: ["#ffbc1c", "#ff1c1c", "#ff85e1", "#52a7ff", "#78ff5d"],
+        _sprites: [redObstacle, pinkObstacle, blueObstacle, greenObstacle, yellowObstacle],
         tempoInsere: 0,
         insere: function () {
             this._obs.push({
                 x: larg,
+                y: chao.y - Math.floor(20 + Math.random() * 100),
                 //largura: 30 + Math.floor(21 * Math.random()),
                 largura: 50,
-                altura: 30 + Math.floor(120 * Math.random()),
-                cor: this.cores[Math.floor(5 * Math.random())]
+                // altura: 30 + Math.floor(120 * Math.random()),
+                sprite: this._sprites[Math.floor(this._sprites.length * Math.random())]
             })
 
             this.tempoInsere = 50 + Math.floor(30 * Math.random())
@@ -125,10 +126,10 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
                 this.tempoInsere--
             }
             for (var i = 0, tam = this._obs.length; i < tam; i++) {
-                var obs = this._obs[i]
-                obs.x -= velocidade
+                var obj = this._obs[i]
+                obj.x -= velocidade
 
-                if (!bloco.colidindo && obs.x <= bloco.x + bloco.largura && bloco.x <= obs.x + obs.largura && chao.y - obs.altura <= bloco.y + bloco.altura) {
+                if (!bloco.colidindo && obj.x <= bloco.x + bloco.largura && bloco.x <= obj.x + obj.largura && obj.y <= bloco.y + bloco.altura) {
                     bloco.colidindo = true
 
                     setTimeout(function() {
@@ -140,16 +141,16 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
                     } else {
                         estadoAtual = estados.perdeu
                     }
-                } else if (obs.x <= 0 && !obs._scored) {
+                } else if (obj.x <= 0 && !obj._scored) {
                     bloco.score++
-                    obs._scored = true
+                    obj._scored = true
 
                     if (faseAtual < pontosParaNovaFase.length && bloco.score == pontosParaNovaFase[faseAtual]) {
                         passarDeFase()
                     }
                 }
 
-                if (obs.x <= -obs.largura) {
+                 else if (obj.x <= -obj.largura) {
                     this._obs.splice(i, 1)
                     tam--
                     i--
@@ -163,16 +164,13 @@ var canvas, context, alt, larg, maxPulos = 3, velocidade = 6, estadoAtual, recor
 
         desenha: function () {
             for (var i = 0, tam = this._obs.length; i < tam; i++) {
-                var obs = this._obs[i]
-                context.fillStyle = obs.cor
-                context.fillRect(obs.x, chao.y - obs.altura, obs.largura, obs.altura)
+                var obj = this._obs[i]
+                obj.sprite.desenha(obj.x, obj.y)
             }
         }
     }
 
 function create() { //cria o layout
-    // context.fillStyle = "#80daff"
-    // context.fillRect(0, 0, larg, alt)
     bg.desenha(0, 0)
 
     context.fillStyle = "#ffffff"
@@ -187,7 +185,7 @@ function create() { //cria o layout
         obstaculos.desenha()
     }
 
-    chao.desenha()    
+    chao.desenha()
     bloco.desenha()
 
     if (estadoAtual == estados.jogar) {
